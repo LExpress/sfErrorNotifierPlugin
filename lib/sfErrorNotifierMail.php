@@ -151,6 +151,7 @@ class sfErrorNotifierMail
 
     // send mail
     $sent = ocariMail::send(array(
+      'smtp'    => sfConfig::get('app_smtp'),
       'from'    => $this->from,
       'to'      => $this->to,
       'subject' => $this->subject,
@@ -220,6 +221,7 @@ class sfErrorNotifierMail
 
     // send mail
     ocariMail::send(array(
+      'smtp'    => sfConfig::get('app_smtp'),
       'from'    => $this->from,
       'to'      => $this->to,
       'subject' => $this->subject,
