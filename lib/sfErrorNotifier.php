@@ -17,60 +17,23 @@ class sfErrorNotifier
 {
   static public function notify(sfEvent $event)
   {
-    
-    $to = sfConfig::get('app_sfErrorNotifier_emailTo');
-    if(! $to)
-    {
-      // this environment is not set to notify exceptions
-      return; 
-    }
-	
-    $exception = $event->getSubject();
-    $context = sfContext::getInstance();
-	$env = 'n/a';
-    if ($conf = sfContext::getInstance()->getConfiguration())
-    {
-      $env = $conf->getEnvironment(); 
-    }
-
-    $data = array();      
-    $data['className'] = get_class($exception);
-    $data['message'] = !is_null($exception->getMessage()) ? $exception->getMessage() : 'n/a';
-    $data['moduleName'] = $context->getModuleName();
-    $data['actionName'] = $context->getActionName();
-    $data['uri'] = $context->getRequest()->getUri();
-	
-    $subject = "ERROR: {$_SERVER['HTTP_HOST']} Exception - $env - {$data['message']}";
-    
-    $mail = new sfErrorNotifierMail($subject, $data, $exception, $context);
-    $mail->notify(sfConfig::get('app_sfErrorNotifier_emailFormat', 'html'));
+    self::send($event->getSubject(), 'NOTIFY');
   }
 
-  static public function alert($alertMessage)
+  static public function alert(Exception $exception)
   {
-    $to = sfConfig::get('app_sfErrorNotifier_emailTo');
-    if(! $to)
+    self::send($exception, 'ALERT');
+  }
+
+  static protected function send(Exception $exception, $subjectPrefix = 'ERROR')
+  {
+    if (null === $to = sfConfig::get('app_sfErrorNotifier_emailTo'))
     {
       // this environment is not set to notify exceptions
-      return; 
-    }
-	
-    $context = sfContext::getInstance();
-	  $env = 'n/a';
-    if ($conf = sfContext::getInstance()->getConfiguration())
-    {
-      $env = $conf->getEnvironment(); 
+      return;
     }
 
-    $data = array();
-    $data['moduleName'] = $context->getModuleName();
-    $data['actionName'] = $context->getActionName();
-    $data['uri'] = $context->getRequest()->getUri();
-	
-    $subject = "ALERT: {$_SERVER['HTTP_HOST']} - $env - $alertMessage";
-    
-    $mail = new sfErrorNotifierMail($subject, $data, null, $context);
-
+    $mail = new sfErrorNotifierMail($exception, sfContext::getInstance(), $subjectPrefix);
     $mail->notify(sfConfig::get('app_sfErrorNotifier_emailFormat', 'html'));
   }
 }
