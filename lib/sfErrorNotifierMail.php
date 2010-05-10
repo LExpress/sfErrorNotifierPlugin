@@ -100,8 +100,17 @@ class sfErrorNotifierMail
     $this->beginTable();
     foreach ($this->data as $key=>$value)
     {
-      $this->addRow($key,$value);
+      $this->addRow($key, $value);
     }
+
+    $subtable = array();
+    foreach ($_POST as $key => $value)
+    {
+      $subtable[] = '<b>'.$key.'</b>: '.$value;
+    }
+    $subtable = implode('<br/>', $subtable);
+    $this->addRow('parameters', $subtable);
+
     $this->body .= '</table>';
 
     //User attributes and credentials
@@ -158,7 +167,7 @@ class sfErrorNotifierMail
       'message' => array('html' => $this->body),
     ));
 
-    return true;
+    return $sent;
   }
 
   private function notifyTxt()
@@ -186,6 +195,13 @@ class sfErrorNotifierMail
     foreach($this->data as $key => $value)
     {
     	$this->body .= $key . ': ' . $value . "\n";
+    }
+    $this->body .= "\n";
+    
+    $this->body .= "Parameters:\n";
+    foreach ($_POST as $key => $value)
+    {
+      $this->body .= $key.': '.$value."\n";
     }
     $this->body .= "\n\n";
 
@@ -220,7 +236,7 @@ class sfErrorNotifierMail
     }
 
     // send mail
-    ocariMail::send(array(
+    $sent = ocariMail::send(array(
       'smtp'    => sfConfig::get('app_smtp'),
       'from'    => $this->from,
       'to'      => $this->to,
@@ -228,7 +244,7 @@ class sfErrorNotifierMail
       'message' => array('plain' => $this->body),
     ));
 
-    return true;
+    return $sent;
   }
 
   private function addRow($th, $td = '&nbsp;')
