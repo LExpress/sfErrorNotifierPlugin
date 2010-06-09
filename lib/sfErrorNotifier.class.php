@@ -27,6 +27,12 @@ class sfErrorNotifier
 
   static protected function send(Exception $exception, $subjectPrefix = 'ERROR')
   {
+    if ($exception instanceof sfStopException)
+    {
+      // it's not an error.
+	    return;
+    }
+
     if (null === $to = sfConfig::get('app_sfErrorNotifier_emailTo'))
     {
       // this environment is not set to notify exceptions
