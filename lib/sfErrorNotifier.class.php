@@ -25,7 +25,7 @@ class sfErrorNotifier
     self::send($exception, 'ALERT');
   }
 
-  static protected function send(Exception $exception, $subjectPrefix = 'ERROR')
+  static public function send(Exception $exception, $subjectPrefix = 'ERROR')
   {
     if ($exception instanceof sfStopException)
     {
