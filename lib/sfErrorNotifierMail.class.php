@@ -23,7 +23,8 @@ class sfErrorNotifierMail
     $data       = array(),
     $exception  = null,
     $context    = null,
-    $env        = 'n/a';
+    $env        = 'n/a',
+    $host       = 'n/a';
 
   public function __construct(Exception $exception, sfContext $context = null, $subjectPrefix = 'ERROR')
   {
@@ -51,7 +52,13 @@ class sfErrorNotifierMail
         'uri'         => $this->context->getRequest()->getUri(),
       );
     }
-    $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $_SERVER['HTTP_HOST'], $this->data['message']);
+
+    if (isset($_SERVER['HTTP_HOST']))
+    {
+      $this->host = $_SERVER['HTTP_HOST'];
+    }
+
+    $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $this->host, $this->data['message']);
   }
 
   public function notify($format = 'html')
