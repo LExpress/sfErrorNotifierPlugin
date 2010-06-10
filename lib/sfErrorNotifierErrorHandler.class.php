@@ -13,7 +13,7 @@ class sfErrorNotifierErrorHandler
    */
 	public static function start()
 	{
-		set_error_handler(array(__CLASS__, 'handlePhpError'), E_ALL);
+		set_error_handler(array(__CLASS__, 'handlePhpError'), E_ERROR | E_PARSE | E_NOTICE | E_STRICT);
 		set_exception_handler(array(__CLASS__, 'handleException'));
 		register_shutdown_function(array(__CLASS__, 'handlePhpFatalError'));
 
@@ -31,7 +31,7 @@ class sfErrorNotifierErrorHandler
 	 */
 	public static function handlePhpError($errno, $errstr, $errfile, $errline)
 	{
-	  sfErrorNotifier::send(new ErrorException($errstr, 0, $errno, $errfile, $errline));
+	  sfErrorNotifier::send(new ErrorException($errstr, 0, $errno, $errfile, $errline), 'PHP_ERROR');
 	}
 
 	public static function handlePhpFatalError()
@@ -51,13 +51,13 @@ class sfErrorNotifierErrorHandler
        sfErrorNotifier::send(new ErrorException(
          @$lastError['message'], @$lastError['type'], @$lastError['type'],
          @$lastError['file'], @$lastError['line']
-       ));
+       ), 'PHP_FATAL_ERROR');
     }
 	}
 
   public static function handleException($e)
   {
-    sfErrorNotifier::send($e);
+    sfErrorNotifier::send($e, 'EXCEPTION');
   }
 
 	/**
