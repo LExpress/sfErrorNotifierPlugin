@@ -41,10 +41,16 @@ class sfErrorNotifierMail
     $this->data = array(
       'className'   => get_class($exception),
       'message'     => null !== $exception->getMessage() ? $exception->getMessage() : 'n/a',
-      'moduleName'  => $context->getModuleName(),
-      'actionName'  => $context->getActionName(),
-      'uri'         => $context->getRequest()->getUri(),
     );
+
+    if ($this->context)
+    {
+      $this->data += array(
+        'moduleName'  => $this->context->getModuleName(),
+        'actionName'  => $this->context->getActionName(),
+        'uri'         => $this->context->getRequest()->getUri(),
+      );
+    }
     $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $_SERVER['HTTP_HOST'], $this->data['message']);
   }
 
