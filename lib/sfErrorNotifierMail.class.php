@@ -25,12 +25,15 @@ class sfErrorNotifierMail
     $context    = null,
     $env        = 'n/a';
 
-  public function __construct(Exception $exception, sfContext $context, $subjectPrefix = 'ERROR')
+  public function __construct(Exception $exception, sfContext $context = null, $subjectPrefix = 'ERROR')
   {
+    $this->exception = $exception;
+    $this->context = $context;
+
   	$this->to = sfConfig::get('app_sfErrorNotifier_emailTo');
     $this->from = sfConfig::get('app_sfErrorNotifier_emailFrom');
 
-    if ($conf = $context->getConfiguration())
+    if ($this->context && $conf = $this->context->getConfiguration())
     {
       $this->env = $conf->getEnvironment();
     }
@@ -43,9 +46,6 @@ class sfErrorNotifierMail
       'uri'         => $context->getRequest()->getUri(),
     );
     $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $_SERVER['HTTP_HOST'], $this->data['message']);
-
-    $this->context = $context;
-    $this->exception = $exception;
   }
 
   public function notify($format = 'html')
@@ -114,47 +114,50 @@ class sfErrorNotifierMail
     $this->body .= '</table>';
 
     //User attributes and credentials
-    $this->addTitle('User');
-    $this->beginTable();
-    $user = $this->context->getUser();
-
-    $this->addRow('Name', $user->getUserName());
-
-    $subtable = array();
-
-    foreach ($user->getAttributeHolder()->getAll() as $key => $value)
+    if ($this->context)
     {
-      if (is_array($value))
+      $this->addTitle('User');
+      $this->beginTable();
+      $user = $this->context->getUser();
+
+      $this->addRow('Name', $user->getUserName());
+
+      $subtable = array();
+
+      foreach ($user->getAttributeHolder()->getAll() as $key => $value)
       {
-        $value = 'Array: ' . implode(', ',  $value);
-      }
-      else if (is_object($value))
-      {
-        if (!method_exists($value, "__toString"))
+        if (is_array($value))
         {
-          $value = "Object: ".get_class($value);
+          $value = 'Array: ' . implode(', ',  $value);
         }
+        else if (is_object($value))
+        {
+          if (!method_exists($value, "__toString"))
+          {
+            $value = "Object: ".get_class($value);
+          }
+        }
+        $subtable[] = '<b>'.$key.'</b>: '.$value;
       }
-      $subtable[] = '<b>'.$key.'</b>: '.$value;
-    }
-    $subtable = implode('<br/>', $subtable);
-    $this->addRow('Attributes', $subtable);
+      $subtable = implode('<br/>', $subtable);
+      $this->addRow('Attributes', $subtable);
 
-    if ($user->isAnonymous())
-    {
-      $credentials = 'Not connected';
-    }
-    else if ($user->isSuperAdmin())
-    {
-      $credentials = 'Super admin';
-    }
-    else
-    {
-      $credentials = implode(', ' , $user->listCredentials());
-    }
+      if ($user->isAnonymous())
+      {
+        $credentials = 'Not connected';
+      }
+      else if ($user->isSuperAdmin())
+      {
+        $credentials = 'Super admin';
+      }
+      else
+      {
+        $credentials = implode(', ' , $user->listCredentials());
+      }
 
-    $this->addRow('Credentials', $credentials);
-    $this->body .= '</table>';
+      $this->addRow('Credentials', $credentials);
+      $this->body .= '</table>';
+    }
 
     $this->body .= '</div>';
 
@@ -205,34 +208,37 @@ class sfErrorNotifierMail
     }
     $this->body .= "\n\n";
 
-    $this->body .= "User Name:\n";
-    $user = $this->context->getUser();
-    $this->body .= $user->getUserName();
-
-    $this->body .= "User Attributes:\n";
-    foreach ($user->getAttributeHolder()->getAll() as $key => $value)
+    if ($this->context)
     {
-      if (is_array($value))
+      $this->body .= "User Name:\n";
+      $user = $this->context->getUser();
+      $this->body .= $user->getUserName();
+
+      $this->body .= "User Attributes:\n";
+      foreach ($user->getAttributeHolder()->getAll() as $key => $value)
       {
-        $value = 'Array: ' . implode(', ',  $value);
+        if (is_array($value))
+        {
+          $value = 'Array: ' . implode(', ',  $value);
+        }
+        $this->body .= $key . ': ' . $value . "\n";
       }
-      $this->body .= $key . ': ' . $value . "\n";
-    }
-    $this->body .= "\n\n";
-
-    $this->body .= "User Credentials:\n";
-    if ($user->isAnonymous())
-    {
-      $this->body .= 'Not connected';
-    }
-    else if ($user->isSuperAdmin())
-    {
-      $this->body .= 'Super admin';
-    }
-    else
-    {
-      $this->body .= implode(', ' , $user->listCredentials());
       $this->body .= "\n\n";
+
+      $this->body .= "User Credentials:\n";
+      if ($user->isAnonymous())
+      {
+        $this->body .= 'Not connected';
+      }
+      else if ($user->isSuperAdmin())
+      {
+        $this->body .= 'Super admin';
+      }
+      else
+      {
+        $this->body .= implode(', ' , $user->listCredentials());
+        $this->body .= "\n\n";
+      }
     }
 
     // send mail

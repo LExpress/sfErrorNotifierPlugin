@@ -39,7 +39,13 @@ class sfErrorNotifier
       return;
     }
 
-    $mail = new sfErrorNotifierMail($exception, sfContext::getInstance(), $subjectPrefix);
+    $context = null;
+    if (sfContext::hasInstance())
+    {
+      $context = sfContext::getInstance();
+    }
+
+    $mail = new sfErrorNotifierMail($exception, $context, $subjectPrefix);
     $mail->notify(sfConfig::get('app_sfErrorNotifier_emailFormat', 'html'));
   }
 }
