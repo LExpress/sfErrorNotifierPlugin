@@ -1,4 +1,6 @@
 <?php
+require_once dirname(__FILE__).'/sfErrorNotifier.class.php';
+
 /**
  * PHP Error handler
  *

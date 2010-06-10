@@ -1,11 +1,5 @@
 <?php
-
-/*
- * (c) 2008-2009 Daniele Occhipinti
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+require_once dirname(__FILE__).'/sfErrorNotifierMail.class.php';
 
 /**
  *
