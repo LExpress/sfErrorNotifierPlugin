@@ -15,11 +15,14 @@ class sfErrorNotifierErrorHandler
    */
 	public static function start()
 	{
-		set_error_handler(array(__CLASS__, 'handlePhpError'), E_ERROR | E_PARSE | E_NOTICE | E_STRICT);
-		set_exception_handler(array(__CLASS__, 'handleException'));
-		register_shutdown_function(array(__CLASS__, 'handlePhpFatalError'));
+    if (null !== sfErrorNotifier::getEmailTo())
+    {
+      set_error_handler(array(__CLASS__, 'handlePhpError'), E_ERROR | E_PARSE | E_NOTICE | E_STRICT);
+      set_exception_handler(array(__CLASS__, 'handleException'));
+      register_shutdown_function(array(__CLASS__, 'handlePhpFatalError'));
 
-    self::reserveMemory();
+      self::reserveMemory();
+    }
 	}
 
 	/**

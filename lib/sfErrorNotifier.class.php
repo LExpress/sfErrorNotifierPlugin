@@ -27,7 +27,7 @@ class sfErrorNotifier
 	    return;
     }
 
-    if (null === $to = sfConfig::get('app_sfErrorNotifier_emailTo'))
+    if (null === $to = self::getEmailTo())
     {
       // this environment is not set to notify exceptions
       return;
@@ -40,6 +40,16 @@ class sfErrorNotifier
     }
 
     $mail = new sfErrorNotifierMail($exception, $context, $subjectPrefix);
-    $mail->notify(sfConfig::get('app_sfErrorNotifier_emailFormat', 'html'));
+    $mail->notify(self::getEmailFormat());
+  }
+
+  static public function getEmailTo()
+  {
+    return sfConfig::get('app_sfErrorNotifier_emailTo');
+  }
+
+  static public function getEmailFormat()
+  {
+    return sfConfig::get('app_sfErrorNotifier_emailFormat', 'html');
   }
 }
