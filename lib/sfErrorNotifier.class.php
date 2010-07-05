@@ -9,7 +9,7 @@ require_once dirname(__FILE__).'/sfErrorNotifierMail.class.php';
  */
 class sfErrorNotifier
 {
-  static public function sendMessage($subject, $message)
+  static public function sendMessage($subject, $message, $format = 'plain')
   {
     if (null === $from = self::getEmailFrom())
     {
@@ -28,7 +28,7 @@ class sfErrorNotifier
       'from'    => $from,
       'to'      => $to,
       'subject' => $subject,
-      'message' => array('plain' => $message),
+      'message' => array($format => $message),
     ));
 
     return $sent;
