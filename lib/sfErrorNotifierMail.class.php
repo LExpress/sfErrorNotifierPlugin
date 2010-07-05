@@ -26,13 +26,13 @@ class sfErrorNotifierMail
     $env        = 'n/a',
     $host       = 'n/a';
 
-  public function __construct(Exception $exception, sfContext $context = null, $subjectPrefix = 'ERROR')
+  public function __construct($from, $to, Exception $exception, sfContext $context = null, $subjectPrefix = 'ERROR')
   {
     $this->exception = $exception;
     $this->context = $context;
 
-  	$this->to = sfConfig::get('app_sfErrorNotifier_emailTo');
-    $this->from = sfConfig::get('app_sfErrorNotifier_emailFrom');
+    $this->from = $from;
+  	$this->to = $to;
 
     if ($this->context && $conf = $this->context->getConfiguration())
     {

@@ -9,6 +9,31 @@ require_once dirname(__FILE__).'/sfErrorNotifierMail.class.php';
  */
 class sfErrorNotifier
 {
+  static public function sendMessage($subject, $message)
+  {
+    if (null === $from = self::getEmailFrom())
+    {
+      // this environment is not set to notify exceptions
+      return;
+    }
+
+    if (null === $to = self::getEmailTo())
+    {
+      // this environment is not set to notify exceptions
+      return;
+    }
+
+    $sent = ocariMail::send(array(
+      'smtp'    => sfConfig::get('app_smtp'),
+      'from'    => $from,
+      'to'      => $to,
+      'subject' => $subject,
+      'message' => array('plain' => $message),
+    ));
+
+    return $sent;
+  }
+
   static public function notify(sfEvent $event)
   {
     self::send($event->getSubject(), 'NOTIFY');
@@ -21,10 +46,10 @@ class sfErrorNotifier
 
   static public function send(Exception $exception, $subjectPrefix = 'ERROR')
   {
-    if ($exception instanceof sfStopException)
+    if (null === $from = self::getEmailFrom())
     {
-      // it's not an error.
-	    return;
+      // this environment is not set to notify exceptions
+      return;
     }
 
     if (null === $to = self::getEmailTo())
@@ -33,14 +58,25 @@ class sfErrorNotifier
       return;
     }
 
+    if ($exception instanceof sfStopException)
+    {
+      // it's not an error.
+	    return;
+    }    
+
     $context = null;
     if (sfContext::hasInstance())
     {
       $context = sfContext::getInstance();
     }
 
-    $mail = new sfErrorNotifierMail($exception, $context, $subjectPrefix);
+    $mail = new sfErrorNotifierMail($from, $to, $exception, $context, $subjectPrefix);
     $mail->notify(self::getEmailFormat());
+  }
+
+  static public function getEmailFrom()
+  {
+    return sfConfig::get('app_sfErrorNotifier_emailFrom');
   }
 
   static public function getEmailTo()
