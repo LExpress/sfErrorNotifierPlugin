@@ -126,14 +126,17 @@ class sfErrorNotifierMail
 
     $this->body .= '</table>';
 
-    //User attributes and credentials
+    // User attributes and credentials
     if ($this->context)
     {
       $this->addTitle('User');
       $this->beginTable();
       $user = $this->context->getUser();
 
-      $this->addRow('Name', $user->getUserName());
+      if (!$user->isAnonymous())
+      {
+        $this->addRow('Name', $user->getUserName());
+      }
 
       $subtable = array();
 
@@ -155,6 +158,7 @@ class sfErrorNotifierMail
       $subtable = implode('<br/>', $subtable);
       $this->addRow('Attributes', $subtable);
 
+      $groups = null;
       if ($user->isAnonymous())
       {
         $credentials = 'Not connected';
@@ -165,10 +169,20 @@ class sfErrorNotifierMail
       }
       else
       {
+        if (method_exists($user, 'getGroupNames'))
+        {
+          $groups = implode(', ' , $user->getGroupNames());
+        }
+
         $credentials = implode(', ' , $user->listCredentials());
       }
 
+      if ($groups)
+      {
+        $this->addRow('Groups', $groups);
+      }
       $this->addRow('Credentials', $credentials);
+
       $this->body .= '</table>';
     }
 
@@ -223,9 +237,13 @@ class sfErrorNotifierMail
 
     if ($this->context)
     {
-      $this->body .= "User Name:\n";
       $user = $this->context->getUser();
-      $this->body .= $user->getUserName();
+      
+      if (!$user->isAnonymous())
+      {
+        $this->body .= "User Name:\n";
+        $this->body .= $user->getUserName();
+      }
 
       $this->body .= "User Attributes:\n";
       foreach ($user->getAttributeHolder()->getAll() as $key => $value)
@@ -237,6 +255,13 @@ class sfErrorNotifierMail
         $this->body .= $key . ': ' . $value . "\n";
       }
       $this->body .= "\n\n";
+
+      if (!$user->isAnonymous() && !$user->isSuperAdmin() && method_exists($user, 'getGroupNames'))
+      {
+        $this->body .= "User Groups:\n";
+        $this->body .= implode(', ' , $user->getGroupNames());
+        $this->body .= "\n\n";
+      }
 
       $this->body .= "User Credentials:\n";
       if ($user->isAnonymous())
