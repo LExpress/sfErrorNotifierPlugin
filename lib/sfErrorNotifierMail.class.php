@@ -11,11 +11,11 @@
  *
  * @package    symfony
  * @subpackage plugin
- * @author     Daniele Occhipinti <>
+ * @author     Daniele Occhipinti
  */
 class sfErrorNotifierMail
 {
-  protected 
+  protected
     $body       = null,
     $to         = null,
     $from       = null,
@@ -32,7 +32,7 @@ class sfErrorNotifierMail
     $this->context = $context;
 
     $this->from = $from;
-  	$this->to = $to;
+    $this->to = $to;
 
     if ($this->context && $conf = $this->context->getConfiguration())
     {
@@ -65,12 +65,12 @@ class sfErrorNotifierMail
   {
     if (empty($this->to) || empty($this->from))
     {
-     	return false;
+       return false;
     }
 
     if ($format == 'html')
     {
-    	return $this->notifyHtml();
+      return $this->notifyHtml();
     }
 
     return $this->notifyTxt();
@@ -224,7 +224,7 @@ class sfErrorNotifierMail
     $this->body .= "Additional Data:\n";
     foreach($this->data as $key => $value)
     {
-    	$this->body .= $key . ': ' . $value . "\n";
+      $this->body .= $key . ': ' . $value . "\n";
     }
     $this->body .= "\n";
     
@@ -298,12 +298,12 @@ class sfErrorNotifierMail
 
   private function addTitle($title)
   {
-  	$this->body .= '<h1 style="color:#000; padding:5px;">'.$title.'</h1>';
+    $this->body .= '<h1 style="color:#000; padding:5px;">'.$title.'</h1>';
   }
 
   private function beginTable()
   {
-  	$this->body .= '<table cellspacing="1" width="100%">';
+    $this->body .= '<table cellspacing="1" width="100%">';
   }
 }
 

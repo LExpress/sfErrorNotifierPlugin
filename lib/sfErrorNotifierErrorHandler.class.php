@@ -13,8 +13,8 @@ class sfErrorNotifierErrorHandler
   /**
    * @see handlePhpError
    */
-	public static function start()
-	{
+  public static function start()
+  {
     if (null !== sfErrorNotifier::getEmailTo())
     {
       set_error_handler(array(__CLASS__, 'handlePhpError'), E_ERROR | E_PARSE | E_NOTICE | E_STRICT);
@@ -23,24 +23,24 @@ class sfErrorNotifierErrorHandler
 
       self::reserveMemory();
     }
-	}
+  }
 
-	/**
-	 *
-	 * @param unknown_type $errno
-	 * @param unknown_type $errstr
-	 * @param unknown_type $errfile
-	 * @param unknown_type $errline
-	 *
-	 * @throws ErrorException
-	 */
-	public static function handlePhpError($errno, $errstr, $errfile, $errline)
-	{
-	  sfErrorNotifier::send(new ErrorException($errstr, 0, $errno, $errfile, $errline), 'PHP_ERROR');
-	}
+  /**
+   *
+   * @param unknown_type $errno
+   * @param unknown_type $errstr
+   * @param unknown_type $errfile
+   * @param unknown_type $errline
+   *
+   * @throws ErrorException
+   */
+  public static function handlePhpError($errno, $errstr, $errfile, $errline)
+  {
+    sfErrorNotifier::send(new ErrorException($errstr, 0, $errno, $errfile, $errline), 'PHP_ERROR');
+  }
 
-	public static function handlePhpFatalError()
-	{
+  public static function handlePhpFatalError()
+  {
     $lastError = error_get_last();
     if (is_null($lastError))
     {
@@ -58,23 +58,23 @@ class sfErrorNotifierErrorHandler
          @$lastError['file'], @$lastError['line']
        ), 'PHP_FATAL_ERROR');
     }
-	}
+  }
 
   public static function handleException($e)
   {
     sfErrorNotifier::send($e, 'EXCEPTION');
   }
 
-	/**
-	 * This is allows to catch memory limit fatal errors.
-	 */
-	protected static function reserveMemory()
-	{
-	  $GLOBALS['tmp_buf'] = str_repeat('x', 1024 * 500);
-	}
+  /**
+   * This is allows to catch memory limit fatal errors.
+   */
+  protected static function reserveMemory()
+  {
+    $GLOBALS['tmp_buf'] = str_repeat('x', 1024 * 500);
+  }
 
-	protected static function freeMemory()
-	{
-	  unset($GLOBALS['tmp_buf']);
-	}
+  protected static function freeMemory()
+  {
+    unset($GLOBALS['tmp_buf']);
+  }
 }

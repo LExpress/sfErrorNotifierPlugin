@@ -5,7 +5,7 @@ require_once dirname(__FILE__).'/sfErrorNotifierMail.class.php';
  *
  * @package    symfony
  * @subpackage plugin
- * @author     Daniele Occhipinti <>
+ * @author     Daniele Occhipinti
  */
 class sfErrorNotifier
 {
@@ -61,8 +61,8 @@ class sfErrorNotifier
     if ($exception instanceof sfStopException)
     {
       // it's not an error.
-	    return;
-    }    
+      return;
+    }
 
     $context = null;
     if (sfContext::hasInstance())
