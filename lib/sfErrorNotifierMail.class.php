@@ -16,9 +16,8 @@
 class sfErrorNotifierMail
 {
   protected
+    $config     = array(),
     $body       = null,
-    $to         = null,
-    $from       = null,
     $subject    = null,
     $data       = array(),
     $exception  = null,
@@ -26,13 +25,11 @@ class sfErrorNotifierMail
     $env        = 'n/a',
     $host       = 'n/a';
 
-  public function __construct($from, $to, Exception $exception, sfContext $context = null, $subjectPrefix = 'ERROR')
+  public function __construct(Exception $exception, sfContext $context = null, $subjectPrefix = 'ERROR', $config)
   {
     $this->exception = $exception;
-    $this->context = $context;
-
-    $this->from = $from;
-    $this->to = $to;
+    $this->context   = $context;
+    $this->config    = $config;
 
     if ($this->context && $conf = $this->context->getConfiguration())
     {
@@ -40,16 +37,17 @@ class sfErrorNotifierMail
     }
 
     $this->data = array(
-      'className'   => get_class($exception),
-      'message'     => null !== $exception->getMessage() ? $exception->getMessage() : 'n/a',
+      'Exception class' => get_class($exception),
+      'Message'         => null !== $exception->getMessage() ? $exception->getMessage() : 'n/a',
+      'Host Server'     => gethostname(),
     );
 
     if ($this->context)
     {
       $this->data += array(
-        'moduleName'  => $this->context->getModuleName(),
-        'actionName'  => $this->context->getActionName(),
-        'uri'         => $this->context->getRequest()->getUri(),
+        'Module name' => $this->context->getModuleName(),
+        'Action name' => $this->context->getActionName(),
+        'URI'         => $this->context->getRequest()->getUri(),
       );
     }
 
@@ -58,25 +56,10 @@ class sfErrorNotifierMail
       $this->host = $_SERVER['HTTP_HOST'];
     }
 
-    $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $this->host, $this->data['message']);
+    $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $this->host, $this->data['Message']);
   }
 
-  public function notify($format = 'html')
-  {
-    if (empty($this->to) || empty($this->from))
-    {
-       return false;
-    }
-
-    if ($format == 'html')
-    {
-      return $this->notifyHtml();
-    }
-
-    return $this->notifyTxt();
-  }
-
-  private function notifyHtml()
+  public function notify()
   {
     //Initialize the body message
     $this->body = '<div style="font-family: Verdana, Arial;">';
@@ -167,14 +150,13 @@ class sfErrorNotifierMail
       {
         $credentials = 'Super admin';
       }
+      else if (method_exists($user, 'listCredentials'))
+      {
+        $credentials = implode(', ' , $user->listCredentials());
+      }
       else
       {
-        if (method_exists($user, 'getGroupNames'))
-        {
-          $groups = implode(', ' , $user->getGroupNames());
-        }
-
-        $credentials = implode(', ' , $user->listCredentials());
+        $credentials = '';
       }
 
       if ($groups)
@@ -188,107 +170,17 @@ class sfErrorNotifierMail
 
     $this->body .= '</div>';
 
-    // send mail
-    $sent = ocariMail::send(array(
-      'smtp'    => sfConfig::get('app_smtp'),
-      'from'    => $this->from,
-      'to'      => $this->to,
-      'subject' => $this->subject,
-      'message' => array('html' => $this->body),
-    ));
+    $mailer = $this->getMailer();
 
-    return $sent;
-  }
-
-  private function notifyTxt()
-  {
-    $this->body = "Resume:\n";
-
-    if ($this->exception)
-    {
-      $this->body .= 'Message: '.$this->exception->getMessage()."\n";
-    }
-    else
-    {
-      $this->body .= 'Subject: '.$this->subject."\n";
-    }
-    $this->body .= 'Environment: '.$this->env . "\n";
-    $this->body .= 'Generated at: '.date('H:i:s j F Y')."\n\n";
-
-    if ($this->exception)
-    {
-      $this->body .= "Exception:\n";
-      $this->body .= $this->exception."\n\n";
-    }
-
-    $this->body .= "Additional Data:\n";
-    foreach($this->data as $key => $value)
-    {
-      $this->body .= $key . ': ' . $value . "\n";
-    }
-    $this->body .= "\n";
-    
-    $this->body .= "Parameters:\n";
-    foreach ($_POST as $key => $value)
-    {
-      $this->body .= $key.': '.$value."\n";
-    }
-    $this->body .= "\n\n";
-
-    if ($this->context)
-    {
-      $user = $this->context->getUser();
-      
-      if (!$user->isAnonymous())
-      {
-        $this->body .= "User Name:\n";
-        $this->body .= $user->getUserName();
-      }
-
-      $this->body .= "User Attributes:\n";
-      foreach ($user->getAttributeHolder()->getAll() as $key => $value)
-      {
-        if (is_array($value))
-        {
-          $value = 'Array: ' . implode(', ',  $value);
-        }
-        $this->body .= $key . ': ' . $value . "\n";
-      }
-      $this->body .= "\n\n";
-
-      if (!$user->isAnonymous() && !$user->isSuperAdmin() && method_exists($user, 'getGroupNames'))
-      {
-        $this->body .= "User Groups:\n";
-        $this->body .= implode(', ' , $user->getGroupNames());
-        $this->body .= "\n\n";
-      }
-
-      $this->body .= "User Credentials:\n";
-      if ($user->isAnonymous())
-      {
-        $this->body .= 'Not connected';
-      }
-      else if ($user->isSuperAdmin())
-      {
-        $this->body .= 'Super admin';
-      }
-      else
-      {
-        $this->body .= implode(', ' , $user->listCredentials());
-        $this->body .= "\n\n";
-      }
-    }
+    $message = Swift_Message::newInstance()
+      ->setFrom($this->config['from'])
+      ->setTo($this->config['to'])
+      ->setSubject($this->subject)
+      ->setBody($this->body, 'text/html')
+    ;
 
     // send mail
-    $sent = ocariMail::send(array(
-      'smtp'    => sfConfig::get('app_smtp'),
-      'from'    => $this->from,
-      'to'      => $this->to,
-      'subject' => $this->subject,
-      'message' => array('plain' => $this->body),
-    ));
-
-    return $sent;
+    return $mailer->send($message);
   }
 
   private function addRow($th, $td = '&nbsp;')
@@ -304,6 +196,21 @@ class sfErrorNotifierMail
   private function beginTable()
   {
     $this->body .= '<table cellspacing="1" width="100%">';
+  }
+
+  /**
+   * @return sfMailer
+   */
+  private function getMailer()
+  {
+    if (!class_exists('Swift'))
+    {
+      $swift_dir = sfConfig::get('sf_symfony_lib_dir').'/vendor/swiftmailer/lib';
+      require_once $swift_dir.'/classes/Swift.php';
+      Swift::registerAutoload($swift_dir.'/swift_init.php');
+    }
+
+    return Swift_Mailer::newInstance(Swift_SmtpTransport::newInstance($this->config['smtp'], 25));
   }
 }
 

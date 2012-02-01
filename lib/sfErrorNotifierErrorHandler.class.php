@@ -15,7 +15,7 @@ class sfErrorNotifierErrorHandler
    */
   public static function start()
   {
-    if (null !== sfErrorNotifier::getEmailTo())
+    if (false !== sfErrorNotifier::getEmailConfig())
     {
       set_error_handler(array(__CLASS__, 'handlePhpError'), E_ERROR | E_PARSE | E_NOTICE | E_STRICT);
       set_exception_handler(array(__CLASS__, 'handleException'));

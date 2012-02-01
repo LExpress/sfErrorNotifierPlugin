@@ -9,30 +9,7 @@ require_once dirname(__FILE__).'/sfErrorNotifierMail.class.php';
  */
 class sfErrorNotifier
 {
-  static public function sendMessage($subject, $message, $format = 'plain')
-  {
-    if (null === $from = self::getEmailFrom())
-    {
-      // this environment is not set to notify exceptions
-      return;
-    }
-
-    if (null === $to = self::getEmailTo())
-    {
-      // this environment is not set to notify exceptions
-      return;
-    }
-
-    $sent = ocariMail::send(array(
-      'smtp'    => sfConfig::get('app_smtp'),
-      'from'    => $from,
-      'to'      => $to,
-      'subject' => $subject,
-      'message' => array($format => $message),
-    ));
-
-    return $sent;
-  }
+  static protected $task;
 
   static public function notify(sfEvent $event)
   {
@@ -46,46 +23,35 @@ class sfErrorNotifier
 
   static public function send(Exception $exception, $subjectPrefix = 'ERROR')
   {
-    if (null === $from = self::getEmailFrom())
-    {
-      // this environment is not set to notify exceptions
-      return;
-    }
-
-    if (null === $to = self::getEmailTo())
-    {
-      // this environment is not set to notify exceptions
-      return;
-    }
-
     if ($exception instanceof sfStopException)
     {
       // it's not an error.
       return;
     }
 
-    $context = null;
-    if (sfContext::hasInstance())
+    $context = sfContext::hasInstance() ? sfContext::getInstance() : null;
+
+    if ($config = self::getEmailConfig())
     {
-      $context = sfContext::getInstance();
+      $mail = new sfErrorNotifierMail($exception, $context, $subjectPrefix, $config);
+      $mail->notify();
+    }
+  }
+
+  static public function setTask(sfTask $task)
+  {
+    static::$task = $task;
+  }
+
+  static public function getEmailConfig()
+  {
+    $config = sfConfig::get('error_notifier_email_config');
+
+    if (empty($config['smtp']) || empty($config['from']) || empty($config['to']))
+    {
+       return false;
     }
 
-    $mail = new sfErrorNotifierMail($from, $to, $exception, $context, $subjectPrefix);
-    $mail->notify(self::getEmailFormat());
-  }
-
-  static public function getEmailFrom()
-  {
-    return sfConfig::get('app_sfErrorNotifier_emailFrom');
-  }
-
-  static public function getEmailTo()
-  {
-    return sfConfig::get('app_sfErrorNotifier_emailTo');
-  }
-
-  static public function getEmailFormat()
-  {
-    return sfConfig::get('app_sfErrorNotifier_emailFormat', 'html');
+    return $config;
   }
 }
