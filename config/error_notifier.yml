@@ -1,0 +1,6 @@
+all:
+  email:
+    config:
+      smtp: localhost
+      from: example@example.com
+      to:   []
