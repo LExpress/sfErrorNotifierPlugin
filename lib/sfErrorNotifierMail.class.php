@@ -99,13 +99,9 @@ class sfErrorNotifierMail
       $this->addRow($key, $value);
     }
 
-    $subtable = array();
-    foreach ($_POST as $key => $value)
-    {
-      $subtable[] = '<b>'.$key.'</b>: '.$value;
-    }
-    $subtable = implode('<br/>', $subtable);
-    $this->addRow('parameters', $subtable);
+    $this->addRow('$_POST', '<pre>'.var_export($_POST, true).'</pre>');
+    $this->addRow('$_SESSION', '<pre>'.var_export($_SESSION, true).'</pre>');
+    $this->addRow('$_COOKIE', '<pre>'.var_export($_COOKIE, true).'</pre>');
 
     $this->body .= '</table>';
 
