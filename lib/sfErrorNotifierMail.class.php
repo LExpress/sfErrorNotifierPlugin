@@ -77,7 +77,7 @@ class sfErrorNotifierMail
       $this->addRow('Subject', $this->subject);
     }
     $this->addRow('Environment', $this->env);
-    $this->addRow('Generated at' , date('H:i:s j F Y'));
+    $this->addRow('Generated at' , date('Y-m-d H:i:sP'));
     $this->body .= '</table>';
 
     //The exception itself
