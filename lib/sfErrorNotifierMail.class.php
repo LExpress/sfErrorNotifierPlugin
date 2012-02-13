@@ -47,7 +47,7 @@ class sfErrorNotifierMail
       $this->data += array(
         'Module name' => $this->context->getModuleName(),
         'Action name' => $this->context->getActionName(),
-        'URI'         => $this->context->getRequest()->getUri(),
+        'Method'      => $this->context->getRequest()->getMethod(),
       );
     }
 
@@ -78,6 +78,7 @@ class sfErrorNotifierMail
     }
     $this->addRow('Environment', $this->env);
     $this->addRow('Generated at' , date('Y-m-d H:i:sP'));
+    $this->addRow('URI', $this->context->getRequest()->getUri());
     $this->body .= '</table>';
 
     //The exception itself
@@ -116,26 +117,7 @@ class sfErrorNotifierMail
       {
         $this->addRow('Name', $user->getUserName());
       }
-
-      $subtable = array();
-
-      foreach ($user->getAttributeHolder()->getAll() as $key => $value)
-      {
-        if (is_array($value))
-        {
-          $value = 'Array: ' . implode(', ',  $value);
-        }
-        else if (is_object($value))
-        {
-          if (!method_exists($value, "__toString"))
-          {
-            $value = "Object: ".get_class($value);
-          }
-        }
-        $subtable[] = '<b>'.$key.'</b>: '.$value;
-      }
-      $subtable = implode('<br/>', $subtable);
-      $this->addRow('Attributes', $subtable);
+      $this->addRow('Attributes', '<pre>'.var_export($user->getAttributeHolder()->getAll(), true).'</pre>');
 
       $groups = null;
       if ($user->isAnonymous())
@@ -202,7 +184,7 @@ class sfErrorNotifierMail
     if (!class_exists('Swift'))
     {
       $swift_dir = sfConfig::get('sf_symfony_lib_dir').'/vendor/swiftmailer/lib';
-      require_once $swift_dir.'/classes/Swift.php';
+      require $swift_dir.'/classes/Swift.php';
       Swift::registerAutoload($swift_dir.'/swift_init.php');
     }
 
