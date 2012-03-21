@@ -78,7 +78,10 @@ class sfErrorNotifierMail
     }
     $this->addRow('Environment', $this->env);
     $this->addRow('Generated at' , date('Y-m-d H:i:sP'));
-    $this->addRow('URI', $this->context->getRequest()->getUri());
+    if ($this->context)
+    {
+      $this->addRow('URI', $this->context->getRequest()->getUri());
+    }
     $this->body .= '</table>';
 
     //The exception itself
@@ -100,9 +103,22 @@ class sfErrorNotifierMail
       $this->addRow($key, $value);
     }
 
-    $this->addRow('$_POST', '<pre>'.var_export($_POST, true).'</pre>');
-    $this->addRow('$_SESSION', '<pre>'.var_export($_SESSION, true).'</pre>');
-    $this->addRow('$_COOKIE', '<pre>'.var_export($_COOKIE, true).'</pre>');
+    if (!empty($_POST))
+    {
+      $this->addRow('$_POST', '<pre>'.var_export($_POST, true).'</pre>');
+    }
+    if (!empty($_SESSION))
+    {
+      $this->addRow('$_SESSION', '<pre>'.var_export($_SESSION, true).'</pre>');
+    }
+    if (!empty($_COOKIE))
+    {
+      $this->addRow('$_COOKIE', '<pre>'.var_export($_COOKIE, true).'</pre>');
+    }
+    if (!empty($_SERVER))
+    {
+      $this->addRow('$_SERVER', '<pre>'.var_export($_SERVER, true).'</pre>');
+    }
 
     $this->body .= '</table>';
 
@@ -181,14 +197,21 @@ class sfErrorNotifierMail
    */
   private function getMailer()
   {
-    if (!class_exists('Swift'))
+    static $mailer;
+
+    if (null === $mailer)
     {
-      $swift_dir = sfConfig::get('sf_symfony_lib_dir').'/vendor/swiftmailer/lib';
-      require $swift_dir.'/classes/Swift.php';
-      Swift::registerAutoload($swift_dir.'/swift_init.php');
+      if (!class_exists('Swift'))
+      {
+        $swift_dir = sfConfig::get('sf_symfony_lib_dir').'/vendor/swiftmailer/lib';
+        require $swift_dir.'/classes/Swift.php';
+        Swift::registerAutoload($swift_dir.'/swift_init.php');
+      }
+
+      $mailer = Swift_Mailer::newInstance(Swift_SmtpTransport::newInstance($this->config['smtp'], 25));
     }
 
-    return Swift_Mailer::newInstance(Swift_SmtpTransport::newInstance($this->config['smtp'], 25));
+    return $mailer;
   }
 }
 
