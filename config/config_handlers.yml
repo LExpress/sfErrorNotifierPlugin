@@ -1,4 +1,0 @@
-config/error_notifier.yml:
-  class: sfDefineEnvironmentConfigHandler
-  param:
-    prefix: error_notifier_

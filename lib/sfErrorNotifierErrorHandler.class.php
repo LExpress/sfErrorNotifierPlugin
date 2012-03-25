@@ -26,13 +26,12 @@ class sfErrorNotifierErrorHandler
   }
 
   /**
+   * Handle a PHP error to send notfication
    *
-   * @param unknown_type $errno
-   * @param unknown_type $errstr
-   * @param unknown_type $errfile
-   * @param unknown_type $errline
-   *
-   * @throws ErrorException
+   * @param integer $errno
+   * @param string $errstr
+   * @param string $errfile
+   * @param integer $errline
    */
   public static function handlePhpError($errno, $errstr, $errfile, $errline)
   {
@@ -60,7 +59,12 @@ class sfErrorNotifierErrorHandler
     }
   }
 
-  public static function handleException($e)
+  /**
+   * Handle exception to send notification
+   *
+   * @param Exception $e
+   */
+  public static function handleException(Exception $e)
   {
     sfErrorNotifier::send($e, 'EXCEPTION');
   }
@@ -73,6 +77,9 @@ class sfErrorNotifierErrorHandler
     $GLOBALS['tmp_buf'] = str_repeat('x', 1024 * 500);
   }
 
+  /**
+   * Free momory
+   */
   protected static function freeMemory()
   {
     unset($GLOBALS['tmp_buf']);
