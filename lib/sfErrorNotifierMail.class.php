@@ -129,22 +129,25 @@ class sfErrorNotifierMail
       $this->beginTable();
       $user = $this->context->getUser();
 
-      if (!$user->isAnonymous())
+      if ($user && !$user->isAnonymous())
       {
         $this->addRow('Name', $user->getUserName());
       }
-      $this->addRow('Attributes', '<pre>'.var_export($user->getAttributeHolder()->getAll(), true).'</pre>');
+      if ($user && $user->getAttributeHolder())
+      {
+        $this->addRow('Attributes', '<pre>'.var_export($user->getAttributeHolder()->getAll(), true).'</pre>');
+      }
 
       $groups = null;
-      if ($user->isAnonymous())
+      if ($user && $user->isAnonymous())
       {
         $credentials = 'Not connected';
       }
-      else if ($user->isSuperAdmin())
+      else if ($user && $user->isSuperAdmin())
       {
         $credentials = 'Super admin';
       }
-      else if (method_exists($user, 'listCredentials'))
+      else if ($user && method_exists($user, 'listCredentials'))
       {
         $credentials = implode(', ' , $user->listCredentials());
       }
