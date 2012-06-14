@@ -167,8 +167,6 @@ class sfErrorNotifierMail
 
     $this->body .= '</div>';
 
-    $mailer = $this->getMailer();
-
     $message = Swift_Message::newInstance()
       ->setFrom($this->config['from'])
       ->setTo($this->config['to'])
@@ -177,7 +175,7 @@ class sfErrorNotifierMail
     ;
 
     // send mail
-    return $mailer->send($message);
+    return $this->getMailer()->send($message);
   }
 
   private function addRow($th, $td = '&nbsp;')
