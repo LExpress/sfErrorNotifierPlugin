@@ -9,8 +9,8 @@
 
 /**
  *
- * @package    symfony
- * @subpackage plugin
+ * @package    sfErrorNotifierPlugin
+ * @subpackage lib
  * @author     Daniele Occhipinti
  */
 class sfErrorNotifierMail
@@ -19,11 +19,11 @@ class sfErrorNotifierMail
     $config     = array(),
     $body       = null,
     $subject    = null,
+    $message    = null,
     $data       = array(),
     $exception  = null,
     $context    = null,
-    $env        = 'n/a',
-    $host       = 'n/a';
+    $env        = 'n/a';
 
   public function __construct(Exception $exception, sfContext $context = null, $subjectPrefix = 'ERROR', $config)
   {
@@ -36,9 +36,10 @@ class sfErrorNotifierMail
       $this->env = $conf->getEnvironment();
     }
 
+    $this->message = null !== $exception->getMessage() ? htmlentities($exception->getMessage()) : 'n/a';
+
     $this->data = array(
       'Exception class' => get_class($exception),
-      'Message'         => null !== $exception->getMessage() ? $exception->getMessage() : 'n/a',
       'Host Server'     => gethostname(),
     );
 
@@ -51,12 +52,7 @@ class sfErrorNotifierMail
       );
     }
 
-    if (isset($_SERVER['HTTP_HOST']))
-    {
-      $this->host = $_SERVER['HTTP_HOST'];
-    }
-
-    $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $this->host, substr($this->data['Message'], 0, 255));
+    $this->subject = sprintf('%s: %s', $subjectPrefix, substr($this->message, 0, 200));
   }
 
   public function notify()
@@ -67,15 +63,7 @@ class sfErrorNotifierMail
     //The exception resume
     $this->addTitle('Resume');
 
-    $this->beginTable();
-    if ($this->exception)
-    {
-      $this->addRow('Message', $this->exception->getMessage());
-    }
-    else
-    {
-      $this->addRow('Subject', $this->subject);
-    }
+    $this->addRow('Message', $this->message);
     $this->addRow('Environment', $this->env);
     $this->addRow('Generated at' , date('Y-m-d H:i:sP'));
     if ($this->context)
@@ -85,15 +73,12 @@ class sfErrorNotifierMail
     $this->body .= '</table>';
 
     //The exception itself
-    if ($this->exception)
-    {
-      $this->addTitle('Exception');
+    $this->addTitle('Exception');
 
-      $this->beginTable();
-      $this->addRow('Trace', $this->exception);
+    $this->beginTable();
+    $this->addRow('Trace', htmlentities((string) $this->exception));
 
-      $this->body .= '</table>';
-    }
+    $this->body .= '</table>';
 
     //Aditional Data
     $this->addTitle('Additional Data');
@@ -197,7 +182,7 @@ class sfErrorNotifierMail
   }
 
   /**
-   * @return sfMailer
+   * @return Swift_Mailer
    */
   private function getMailer()
   {
