@@ -56,7 +56,7 @@ class sfErrorNotifierMail
       $this->host = $_SERVER['HTTP_HOST'];
     }
 
-    $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $this->host, $this->data['Message']);
+    $this->subject = sprintf('%s: %s Exception - %s', $subjectPrefix, $this->host, substr($this->data['Message'], 0, 255));
   }
 
   public function notify()
