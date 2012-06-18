@@ -63,6 +63,7 @@ class sfErrorNotifierMail
     //The exception resume
     $this->addTitle('Resume');
 
+    $this->beginTable();
     $this->addRow('Message', $this->message);
     $this->addRow('Environment', $this->env);
     $this->addRow('Generated at' , date('Y-m-d H:i:sP'));
@@ -76,7 +77,8 @@ class sfErrorNotifierMail
     $this->addTitle('Exception');
 
     $this->beginTable();
-    $this->addRow('Trace', htmlentities((string) $this->exception));
+    $this->addRow('File', $this->exception->getFile().':'.$this->exception->getLine());
+    $this->addRow('Trace', $this->exception->getTraceAsString());
 
     $this->body .= '</table>';
 
