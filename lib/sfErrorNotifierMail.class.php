@@ -167,6 +167,7 @@ class sfErrorNotifierMail
 
     $this->body .= '</div>';
 
+    // Here for Swift_Message class autoloading
     $mailer = $this->getMailer();
 
     $message = Swift_Message::newInstance()
