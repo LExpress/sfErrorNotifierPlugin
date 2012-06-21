@@ -1,0 +1,27 @@
+{
+    "name": "lexpress/sf-error-notifier-plugin",
+    "description": "Send email notifications when application errors occur and are not caught",
+    "keywords": "symfony1, error, alert",
+    "type": "symfony1-plugin",
+    "licence": "MIT",
+    "authors": [
+        {
+            "name": "Daniele Occhipinti",
+            "email": "danieleocchipinti@gmail.com",
+            "role": "Creator"
+        },
+        {
+            "name": "Jerome Macias",
+            "email": "jmacias@groupe-exp.com",
+            "role": "Developer"
+        },
+        {
+            "name": "Jerome Tamarelle",
+            "email": "jtamarelle@groupe-exp.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "composer/installers": "*"
+    }
+}
