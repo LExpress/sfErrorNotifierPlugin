@@ -30,6 +30,7 @@ prod:
   email:
     config:
       to: [errors@mysite.com]
+```
 
 In this configuration file, you can also set the format of the email (html or txt) and, optionally, the `from:` field for the email.
 
