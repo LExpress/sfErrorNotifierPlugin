@@ -9,8 +9,6 @@ require_once dirname(__FILE__).'/sfErrorNotifierMail.class.php';
  */
 class sfErrorNotifier
 {
-  static protected $task;
-
   static public function notify(sfEvent $event)
   {
     self::send($event->getSubject(), 'NOTIFY');
@@ -36,11 +34,6 @@ class sfErrorNotifier
       $mail = new sfErrorNotifierMail($exception, $context, $subjectPrefix, $config);
       $mail->notify();
     }
-  }
-
-  static public function setTask(sfTask $task)
-  {
-    static::$task = $task;
   }
 
   static public function getEmailConfig()
